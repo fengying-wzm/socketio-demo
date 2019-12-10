@@ -22,21 +22,7 @@
      * 前端js的 socket.emit("事件名","参数数据")方法，是触发后端自定义消息事件的时候使用的,
      * 前端js的 socket.on("事件名",匿名函数(服务器向客户端发送的数据))为监听服务器端的事件
      **/
-    var socket = io.connect("http://localhost:9092?mac=2&token=xxxx");
-    var firstconnect = true;
-
-    function connect() {
-        if(firstconnect) {
-
-            //socket.on('reconnect', function(){ status_update("Reconnected to Server"); });
-            //socket.on('reconnecting', function( nextRetry ){ status_update("Reconnecting in "
-            //+ nextRetry + " seconds"); });
-            //socket.on('reconnect_failed', function(){ message("Reconnect Failed"); });
-            //firstconnect = false;
-        } else {
-            socket.socket.reconnect();
-        }
-    }
+    var socket = io.connect("http://localhost:9092?userId=123&token=xxxx");
 
     //监听服务器连接事件
     socket.on('connect', function(){ status_update("Connected to Server"); });

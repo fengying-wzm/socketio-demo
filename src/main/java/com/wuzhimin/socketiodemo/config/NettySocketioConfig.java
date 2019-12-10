@@ -1,9 +1,12 @@
 package com.wuzhimin.socketiodemo.config;
 
 import com.corundumstudio.socketio.SocketIOServer;
-import com.corundumstudio.socketio.annotation.SpringAnnotationScanner;
+import com.corundumstudio.socketio.store.RedissonStoreFactory;
 import com.wuzhimin.socketiodemo.handler.AuthHandler;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.Redisson;
+import org.redisson.api.RedissonClient;
+import org.redisson.config.Config;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -19,8 +22,22 @@ public class NettySocketioConfig {
     @Value("${socketio.port}")
     private int port;
 
+
+    @Value("${redis.host}")
+    private String redisHost;
+
+
+    @Value("${redis.password}")
+    private String redisPassword;
+
+    @Value("${redis.port}")
+    private int redisPort;
+
     @Autowired
     private AuthHandler authHandler;
+
+    @Autowired
+    private RedissonClient redissonClient;
 
     /**
      * netty-socketio服务器
@@ -35,15 +52,21 @@ public class NettySocketioConfig {
         config.setPingTimeout(5000);
         config.setAuthorizationListener(authHandler);
 
+        //使用redis的pub/sub实现多副本session同步
+        config.setStoreFactory(new RedissonStoreFactory(redissonClient));
+
         SocketIOServer server = new SocketIOServer(config);
+
         return server;
     }
 
-    /**
-     * 用于扫描netty-socketio的注解，比如 @OnConnect、@OnEvent
-     */
     @Bean
-    public SpringAnnotationScanner springAnnotationScanner() {
-        return new SpringAnnotationScanner(socketIOServer());
+    public RedissonClient getRedissonClient(){
+        Config config = new Config();
+        config.useSingleServer().setPassword(redisPassword).setAddress("redis://"+redisHost+":"+redisPort);
+        RedissonClient redissonClient = Redisson.create(config);
+        return redissonClient;
     }
+
+
 }
